@@ -1,0 +1,40 @@
+[
+ {
+  "assetId": "nep141:sol.omft.near",
+  "decimals": 9,
+  "blockchain": "sol",
+  "symbol": "SOL",
+  "price": 73.53,
+  "priceUpdatedAt": "2026-11-19T16:11:01.663Z",
+  "coingeckoId": "solana"
+ },
+ {
+  "assetId": "nep141:tron.omft.near",
+  "decimals": 6,
+  "blockchain": "tron",
+  "symbol": "TRX",
+  "price": 0.309637,
+  "priceUpdatedAt": "2026-11-19T16:11:01.663Z",
+  "coingeckoId": "tron"
+ },
+ {
+  "assetId": "nep141:tron-d28a265909efecdcee7c5028585214ea0b96f015.omft.near",
+  "decimals": 6,
+  "blockchain": "tron",
+  "symbol": "USDT",
+  "price": 0.999243,
+  "priceUpdatedAt": "2026-11-19T16:11:01.663Z",
+  "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+  "coingeckoId": "tether"
+ },
+ {
+  "assetId": "nep141:sol-c800a4bd850783ccb82c2b2c7e84175443606352.omft.near",
+  "decimals": 6,
+  "blockchain": "sol",
+  "symbol": "USDT",
+  "price": 0.999243,
+  "priceUpdatedAt": "2026-11-19T16:11:01.663Z",
+  "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  "coingeckoId": "tether"
+ }
+]

@@ -1,0 +1,38 @@
+{
+    "quote": {
+        "amountIn": "1000000000",
+        "amountInFormatted": "1000.0",
+        "amountInUsd": "999.274000000000",
+        "minAmountIn": "1000000000",
+        "amountOut": "998398021",
+        "amountOutFormatted": "998.398021",
+        "amountOutUsd": "997.673184036754",
+        "minAmountOut": "993406030",
+        "timeEstimate": 75,
+        "refundFee": "9977",
+        "withdrawFee": "1597903"
+    },
+    "quoteRequest": {
+        "dry": true,
+        "depositMode": "SIMPLE",
+        "swapType": "EXACT_INPUT",
+        "slippageTolerance": 50,
+        "originAsset": "nep141:sol-c800a4bd850783ccb82c2b2c7e84175443606352.omft.near",
+        "depositType": "ORIGIN_CHAIN",
+        "destinationAsset": "nep141:tron-d28a265909efecdcee7c5028585214ea0b96f015.omft.near",
+        "amount": "1000000000",
+        "refundTo": "B7MByhstU2DrXCmhhfBbAu8zCJycDBCFdz7DthEze8WX",
+        "refundType": "ORIGIN_CHAIN",
+        "recipient": "TLEWroJmY4mS7HsgKDT8SwsPRJqnefugEV",
+        "recipientType": "DESTINATION_CHAIN",
+        "deadline": "2026-11-19T17:38:42.000Z",
+        "confidentiality": "public",
+        "referral": "sol2tron",
+        "quoteWaitingTimeMs": 0,
+        "insured": false,
+        "appFees": []
+    },
+    "signature": "ed25519:4x3qviVBVSU9oSx3VAELZtoFkBfn58378zNJjg1eGGHnSV3YfXL5PZ3xEraHicTo6LRtZZqzkhBwPKfZWMUA77L9",
+    "timestamp": "2026-11-19T16:38:42.688Z",
+    "correlationId": "4be38682-4772-48b4-a7e3-0acf9ffccc9f"
+}
