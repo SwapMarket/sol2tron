@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Solana ⇄ Tron — USDT</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <!-- The deploy (build.sh) fills in each file's hash; the browser refuses a file that doesn't match. -->
+  <link rel="stylesheet" href="style.css?v=__COMMIT__" integrity="__SRI_style.css__">
+  <!-- Libraries are bundled from package-lock.json into vendor/ by build.sh, and pinned like the rest. -->
+  <script type="importmap">{
+    "imports": {
+      "solana": "./solana.js?v=__COMMIT__",
+      "tron": "./tron.js?v=__COMMIT__",
+      "mesh": "./mesh.js?v=__COMMIT__",
+      "oneclick": "./oneclick.js?v=__COMMIT__",
+      "viem": "./vendor/viem.js?v=__COMMIT__",
+      "@solana/web3.js": "./vendor/web3.js?v=__COMMIT__",
+      "@walletconnect/sign-client": "./vendor/sign-client.js?v=__COMMIT__",
+      "@walletconnect/modal": "./vendor/modal.js?v=__COMMIT__"
+    },
+    "integrity": {
+      "./solana.js?v=__COMMIT__": "__SRI_solana.js__",
+      "./tron.js?v=__COMMIT__": "__SRI_tron.js__",
+      "./mesh.js?v=__COMMIT__": "__SRI_mesh.js__",
+      "./oneclick.js?v=__COMMIT__": "__SRI_oneclick.js__",
+      "./vendor/viem.js?v=__COMMIT__": "__SRI_vendor/viem.js__",
+      "./vendor/web3.js?v=__COMMIT__": "__SRI_vendor/web3.js__",
+      "./vendor/sign-client.js?v=__COMMIT__": "__SRI_vendor/sign-client.js__",
+      "./vendor/modal.js?v=__COMMIT__": "__SRI_vendor/modal.js__"
+    }
+  }</script>
+</head>
+<body>
+  <nav>
+  <div class="nav-inner">
+    <a class="logo" href="./"><img src="logo.svg" alt="sol2tron" width="127" height="28"></a>
+    <!-- The burger and its styles are from SwapMarket/swapmarket.github.io, src/components/Nav.tsx and src/style/nav.scss (AGPL-3.0), as in liq2sol. -->
+    <button id="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="collapse">
+      <svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true">
+        <path class="line top" d="m 70,33 h -40 c 0,0 -8.5,-0.149796 -8.5,8.5 0,8.649796 8.5,8.5 8.5,8.5 h 20 v -20" />
+        <path class="line middle" d="m 70,50 h -40" />
+        <path class="line bottom" d="m 30,67 h 40 c 0,0 8.5,0.149796 8.5,-8.5 0,-8.649796 -8.5,-8.5 -8.5,-8.5 h -20 v 20" />
+      </svg>
+    </button>
+    <div id="collapse">
+      <a class="tab" href="https://swapmarket.github.io/liq2sol/" data-site="liq2sol">liq2sol</a>
+      <a class="tab" href="https://swapmarket.github.io/sol2base/" data-site="sol2base">sol2base</a>
+      <a class="tab" href="https://swapmarket.github.io/eth2base/" data-site="eth2base">eth2base</a>
+      <a class="tab on" href="./" aria-current="page">sol2tron</a>
+      <a class="tab" href="https://swapmarket.github.io/" data-site="">BTC Swaps</a>
+    </div>
+  </div>
+  </nav>
+  <main id="main">
+    <header>
+      <h1><svg class="tether" viewBox="0 0 32 32" width="40" height="40" role="img" aria-label="Tether"><circle cx="16" cy="16" r="16" fill="#26a17b"/><path fill="#fff" d="M17.922 17.383v-.002c-.11.008-.677.042-1.942.042-1.01 0-1.721-.03-1.971-.042v.003c-3.888-.171-6.79-.848-6.79-1.658 0-.809 2.902-1.486 6.79-1.66v2.644c.254.018.982.061 1.988.061 1.207 0 1.812-.05 1.925-.06v-2.643c3.88.173 6.775.85 6.775 1.658 0 .81-2.895 1.485-6.775 1.657m0-3.59v-2.366h5.414V7.819H8.595v3.608h5.414v2.365c-4.4.202-7.709 1.074-7.709 2.118 0 1.044 3.309 1.915 7.709 2.118v7.582h3.913v-7.584c4.393-.202 7.694-1.073 7.694-2.116 0-1.043-3.301-1.914-7.694-2.117"/></svg><span>Solana ⇄ Tron</span></h1>
+      <p class="sub">Move USDT between Solana and Tron, through Tether's own network (USDT0 Legacy Mesh) or NEAR Intents. Both are quoted; you pick.</p>
+      <div class="dir" role="radiogroup" aria-label="Direction">
+        <label><input type="radio" name="dir" value="s2t" checked> Solana → Tron</label>
+        <label><input type="radio" name="dir" value="t2s"> Tron → Solana</label>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="row between">
+        <span id="solAccount" class="muted">Solana: not connected</span>
+        <button id="connectSol" class="ghost" type="button">Connect Solana</button>
+      </div>
+      <div class="bal" id="solBal" hidden><span class="chain">Solana</span><span class="vals"><span><b id="balSolUsdt">–</b> USDT</span><span><b id="balSol">–</b> SOL</span></span></div>
+      <div class="row between wallet2">
+        <span id="tronAccount" class="muted">Tron: not connected</span>
+        <button id="connectTron" class="ghost" type="button">Connect Tron</button>
+      </div>
+      <div class="bal" id="tronBal" hidden><span class="chain">Tron</span><span class="vals"><span><b id="balTronUsdt">–</b> USDT</span><span><b id="balTrx">–</b> TRX</span><span class="muted" id="balRes"></span></span></div>
+      <div class="row wallet2">
+        <button id="connectQr" class="ghost" type="button" title="A phone wallet by QR code (e.g. Trust Wallet, which holds both Solana and Tron)">WalletConnect</button>
+        <span class="muted small">one QR for both chains, if the wallet holds both</span>
+      </div>
+      <p id="noWallet" class="muted wallet-help" hidden></p>
+    </section>
+
+    <section class="card">
+      <label for="amount">Amount (USDT)</label>
+      <div class="row">
+        <input id="amount" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off">
+        <button id="max" class="ghost" type="button">Max</button>
+      </div>
+
+      <label for="recipient" id="recipientLabel">Recipient on Tron</label>
+      <input id="recipient" type="text" autocomplete="off" spellcheck="false">
+      <p id="recipientHint" class="muted hint"></p>
+
+      <fieldset>
+        <legend>Route</legend>
+        <div id="routes"></div>
+      </fieldset>
+
+      <div id="refundRow" hidden>
+        <label for="refundTron">Your Tron address, for a refund</label>
+        <input id="refundTron" type="text" placeholder="T… where 1Click refunds the deposit if the swap isn't filled" spellcheck="false" autocomplete="off">
+      </div>
+      <p id="need" class="warn"></p>
+      <button id="go" class="primary" disabled>Send</button>
+    </section>
+
+    <section class="card" id="progress" hidden>
+      <ol id="steps"></ol>
+      <div id="deposit" class="deposit" hidden></div>
+      <div id="status" class="status"></div>
+      <button id="again" class="ghost" type="button" hidden>Confirm with the new numbers</button>
+    </section>
+
+    <section class="card" id="recentCard" hidden>
+      <h2>Recent transfers</h2>
+      <ul id="recent"></ul>
+    </section>
+
+    <details class="card">
+      <summary>Resume a transfer</summary>
+      <p class="muted">Closed the page mid-transfer, or used another browser? Paste the Solana signature or Tron transaction id of a Legacy Mesh send, or the deposit address of a NEAR Intents transfer.</p>
+      <div class="row">
+        <input id="resumeId" type="text" placeholder="signature, transaction id or deposit address" spellcheck="false">
+        <button id="resume">Resume</button>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>About TRX on Tron</summary>
+      <p>Every Tron transaction uses <b>bandwidth</b> (its size in bytes) and contract calls use <b>energy</b>. Each account gets 600 bandwidth free a day; energy comes only from staking TRX (or renting it). What isn't covered is paid by burning TRX: at today's prices, 0.001 TRX a byte and 0.0001 TRX per unit of energy.</p>
+      <p>A USDT transfer uses 65,000–130,000 energy, so 6.5–13 TRX with none staked. A Legacy Mesh send uses about 226,000 energy (22.6 TRX) plus its LayerZero fee of 5–6 TRX, which must be TRX; the approval before it uses about 100,000 (10 TRX). The page shows the exact amount for each transfer before you sign.</p>
+      <p>To get TRX: buy it on an exchange and withdraw it to your Tron address. Energy rental services sell energy for less than burning TRX costs, but you still need TRX for the LayerZero fee.</p>
+    </details>
+
+    <footer class="muted">
+      USDT0 Legacy Mesh: OFT <code>Fuww9m…Xf7</code> on Solana, <code>TFG4wB…LPt</code> on Tron; tracked on LayerZero Scan. NEAR Intents 1Click (<code>1click.chaindefuser.com</code>). Details and sources: <a href="https://github.com/SwapMarket/sol2tron/blob/__COMMIT__/docs/assumptions.md" target="_blank" rel="noopener">docs/assumptions.md</a>.
+      Use at your own risk. <a id="commit" href="https://github.com/SwapMarket/sol2tron/tree/__COMMIT__" target="_blank" rel="noopener" title="Source code at the deployed commit">__COMMIT_SHORT__</a>
+    </footer>
+  </main>
+  <script type="module" src="app.js?v=__COMMIT__" integrity="__SRI_app.js__"></script>
+</body>
+</html>

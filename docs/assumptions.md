@@ -79,9 +79,10 @@ The brief listed three verifiers including Canary. This route requires **two**. 
 
 ### 1.4 Wire format
 
-- **Message:** `u16 msgType (1 = SendOFT) ‖ bytes32 to ‖ u64 amountSD`, with shared decimals 6 = USDT's decimals, so
-  `amountSD = amountLD`. Source: `codec/msg_codec.rs`. Observed on LayerZero Scan:
-  `0x0002…` + `0x0001` (type) + `000…6f0e388f…58b4` + `0000000031473b9c`.
+- **Message:** `u16 msgType (2 = SendOFT; 1 is WithdrawRemote, 3 SendCredits, 4 SendOFTAndCall) ‖ bytes32 to ‖ u64 amountSD`,
+  with shared decimals 6 = USDT's decimals, so `amountSD = amountLD`. Source: `types.rs` and `codec/msg_codec.rs`. Observed on
+  LayerZero Scan as the payload `0x0002` (type) + `000…6f0e388f…58b4` (to) + `0000000031473b9c` (amount).
+  (Corrected on 2026-11-19: an earlier version of this document said type 1.)
 - **Tron recipient from Solana:** `to` is the 20-byte Tron address, left-padded with 12 zero bytes. All mainnet Solana → Tron sends
   looked at (§3) use this form and arrived. Tether's WDK pads the 21-byte form with the `0x41` prefix instead
   ([`_encodeRecipient`](https://github.com/tetherto/wdk-protocol-bridge-usdt0-solana/blob/14d40bd4f57aaf901f7d19ae297746d0a6783b1c/src/usdt0-protocol-solana.js)).
@@ -91,7 +92,7 @@ The brief listed three verifiers including Canary. This route requires **two**. 
   someone enters a *token-account* address as the recipient, the program creates an ATA owned by that token account, and the
   USDT is effectively lost. The page must refuse token accounts, as sol2base does.
 - **Enforced options:** both directions enforce `lzReceive` gas 200,000 with value 0 (`0x0003 01 0011 01 …030d40`). Source:
-  Tron `enforcedOptions(30168, 1)` and Solana peer config `send_oft`.
+  Tron `enforcedOptions(30168, 1)` and `enforcedOptions(30168, 2)` (identical), and Solana peer config `send_oft`.
 
 ## 2. Solana → Tron
 
