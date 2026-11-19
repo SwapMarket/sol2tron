@@ -298,6 +298,70 @@ routes now go through NEAR Intents and LI.FI Intents anyway. Allbridge drops out
 | Sender with no gas coin | Solana: needs ~0.15 SOL. Tron: needs TRX, no way around it. | Solana: a few thousand lamports. Tron: can use a GasFree wallet with no TRX. |
 | Page code (estimate) | Larger: LayerZero account resolution on Solana (port of ~250 lines from WDK), Tron transaction building and protobuf check, approval | Small: two token transfers and status polling |
 
+### Permission, screening and tainted coins (checked 2026-11-19)
+
+Neither route asks the user to identify themselves: no account, no API key, no KYC for the end user. Neither is
+censorship-resistant.
+
+**USDT itself, on both routes** (read from the chains):
+
+- Tron `TetherToken` (`TR7NHq…jLj6t`): the on-chain ABI has `addBlackList`, `removeBlackList`, `isBlackListed`,
+  `destroyBlackFunds`, `pause` and `unpause`.
+- Solana USDT mint (`Es9vMF…wNYB`): `freezeAuthority` and `mintAuthority` are both `Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi`.
+- So coins that are already frozen can't leave by either route: the source transfer fails and only the network fee is lost.
+  Coins that arrive can be frozen where they land.
+
+**Legacy Mesh:**
+
+- The contracts take no list of users. The Tron `UsdtOFT` ABI has no blacklist or screening function. Its admin functions are
+  `transferOwnership`/`renounceOwnership`, `setPeer`, `setFeeBps`, `withdrawFees`, `setEnforcedOptions`, `setDelegate`,
+  `setPlanner`, `setLpAdmin` and `setBurnAndNilifyAdmin`. The Solana `OFTStore` holds super admin, planner, LP admin and
+  burn-and-nilify admin keys (`mesh.js` `parseOftStore`).
+- The LayerZero executor config on Solana has allow and deny lists (`mesh.js` `parseExecutorPriceFeed`). Our reading is that
+  they list applications (OApps), not end users. **UNVERIFIED.**
+- Ways a transfer can still be stopped: the `burnAndNilifyAdmin` cancels the inbound message (§4), either DVN declines to
+  verify, or an upgrade (the Solana program is upgradeable, §1.2). What happens to the money of a cancelled message is
+  **UNVERIFIED**.
+- USDT0's [terms of use](https://usdt0.to/terms) require users not to be sanctioned or in comprehensively sanctioned places.
+  [LlamaRisk](https://research.llamarisk.com/research/regulatory-pressure-on-usdt-and-legal-features-of-usdt0) notes the terms
+  don't describe freezing powers of USDT0's own.
+
+**NEAR Intents 1Click** screens, and says it may hold:
+
+- [1ClickSwap API Terms of Use](https://docs.near-intents.org/security-compliance/terms-of-service) (Intents Technology Limited,
+  BVI; last updated 2026-10-07):
+  - §10.5: "Transactions, assets, and addresses routed through or in connection with the 1Click Service are subject to
+    transaction screening, sanctions, and other compliance, legal, and security controls." Also: "a Transaction may be delayed,
+    blocked, or rejected, and assets to which it relates may be restricted or unavailable". Intents Technology "is not obliged
+    to notify Developer or any End-User of a measure". It says it applies a measure itself "only where required by applicable
+    law", and lifts it "where no grounds remain".
+  - §7.7(f): bridging transfers "may be delayed, blocked, frozen, or rejected" on the basis of screening and KYT/AML controls.
+  - §12.4: "no obligation to reverse, retry, refund, or recover any Transaction that fails".
+  - §4.1(f): the *integrator* (here, SwapMarket's page) is to "conduct know-your-customer, know-your-business, and anti-money
+    laundering compliance checks (including sanctions checks)". A static page with no server and no user accounts can't do
+    this. **This is a terms question for the user to decide.**
+- [NEAR Intents user terms](https://near.com/terms) (Intents Technology Ltd., updated 2026-11-13): refunds go to the refund
+  address "subject to … compliance review and/or blocking or restriction", with no guarantee "that any refund will be available,
+  complete, timely".
+- [Risk and compliance](https://docs.near-intents.org/security-compliance/risk-and-compliance) (undated): quote requests are
+  screened against the NEAR Intents AML Portal, Binance AML, AMLBot and PureFi, plus TRM Labs for non-dry quotes. "Coverage can
+  vary by flow and integration path."
+- An earlier version of that page, quoted on the
+  [Zcash forum](https://forum.zcashcommunity.com/t/near-intents/54588) on 2026-02-07, said quotes are "automatically" refused for
+  addresses TRM Labs flags for sanctions (`riskType: OWNERSHIP`) or "blocking behavior". It also said "When a match is
+  detected, the quote request is immediately rejected". So a flagged address is normally refused *before* a deposit address is
+  issued. The current page no longer lists the criteria.
+- Custody in flight: a [third-party review](https://ethbeat.org/privacy/projects/zcash-near-intents) describes the PoA bridge
+  as custodial, with operator-controlled deposit addresses and a multisig that can freeze accounts in the Verifier contract.
+  **UNVERIFIED** against the contracts.
+- Reported incident: [TokensFund](https://tokensfund.xyz/blog/near-intents-stuck-swap-incident-2026) reports about 5 BTC stuck
+  in a 1Click swap since 2026-08-10, past its deadline and not refunded. This is a single third-party report, **UNVERIFIED**.
+
+**What it means for a user with tainted coins:** on the Legacy Mesh, coins Tether hasn't frozen most likely go through: no
+screening step was found, only rarely used admin powers. On 1Click, a flagged address is normally refused at the quote, before
+any money moves. But a deposit flagged later can be held under the terms, with no duty to tell the user and no guaranteed
+refund.
+
 ## 7. Recommendation
 
 The trade-off is plain: **the Legacy Mesh is the trust-minimal route and the closest match to sol2base, but it costs about $11
@@ -352,6 +416,10 @@ Scripts used were throw-away (scratchpad), but each step is a public call:
 10. GasFree cannot call contracts (only transfers), from GasFree's own docs; current GasFree fee.
 11. Energy rental services and their prices.
 12. NEAR Intents 1Click: custody model, fees and limits without an API key, and whether deposit addresses need a token account.
+    Screening and holds are now sourced (§6, "Permission, screening and tainted coins"). Still unverified: the bridge's freeze
+    powers against the contracts, and what happens to a deposit flagged after the quote.
+15. What happens to the money of a Legacy Mesh message cancelled by the `burnAndNilifyAdmin`.
+16. Whether the LayerZero executor's allow and deny lists on Solana list applications only, not end users.
 13. Our own simulation of `quote_send` and `send` on Solana with WDK's account list. Not yet done; mainnet transactions show the
     list works.
 14. Whether the Tron `UsdtOFT` source is published or verified anywhere; we used its on-chain ABI and Solana's sibling source.

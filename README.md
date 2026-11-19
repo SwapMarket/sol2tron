@@ -36,8 +36,15 @@ Neither route asks who you are: no account, no API key, no KYC. Neither is censo
 - **Legacy Mesh:** the contracts don't check who sends. But they have admins: the owner sets peers and fees, the Solana program
   is upgradeable, a `burnAndNilifyAdmin` can cancel a message in flight, and either verifier could refuse to verify. What
   happens to the money of a cancelled message is **UNVERIFIED**.
-- **NEAR Intents:** an operated service that can refuse a quote, a deposit or a fill. Whether it screens deposits, and what it
-  does with one it flags (refund, hold or seize), is **UNVERIFIED**.
+- **NEAR Intents:** screens. Quote requests are checked against several AML datasets (TRM Labs for real quotes), and a
+  flagged address is normally refused at the quote, before any money moves. The terms also allow a transfer to be "delayed,
+  blocked, or rejected", with no duty to tell the user, and refunds that are "subject to … compliance review" and not
+  guaranteed. The operator is Intents Technology, in the British Virgin Islands.
+- **For the operator of this page:** 1Click's API terms (§4.1(f)) ask the integrator to run KYC and sanctions checks on its
+  users. A static page with no server and no accounts doesn't. That is a decision for SwapMarket, not something the code
+  settles.
+
+Sources and quotes: `docs/assumptions.md` §6, "Permission, screening and tainted coins".
 
 ## Build and check
 
