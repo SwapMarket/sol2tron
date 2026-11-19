@@ -565,9 +565,14 @@ function render() {
     const lines = !amount ? '<span class="line">Enter an amount to see the quote.</span>'
       : !q || q.loading ? '<span class="line">Quoting…</span>'
       : !q.ok ? `<span class="why">${esc(q.why || 'Not available.')}</span>`
-      : `${allIn(q, amount)}<span class="line">You also pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')}</span>`;
+      : `${allIn(q, amount)}<span class="line">${fmt(q.arrives)} USDT arrives, and you pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')} on top</span>`;
     const badge = q?.ok && quotes.mesh?.ok && quotes.oneclick?.ok && best() === k ? '<span class="badge">leaves you more</span>' : '';
-    const arrives = q?.ok ? `<span class="arrives">${fmt(q.arrives)} USDT</span>` : '';
+    // The headline is what is left after every cost (amount − all-in cost), so the routes compare on one number;
+    // without a SOL or TRX price, only the USDT that arrives.
+    const cost = q?.ok ? allInCost(q, amount) : null;
+    const arrives = !q?.ok ? ''
+      : cost == null ? `<span class="arrives">${fmt(q.arrives)} USDT</span>`
+      : `<span class="arrives">$${(Number(amount) / 1e6 - cost).toFixed(2)} <span class="net">left</span></span>`;
     return `<label class="route"><input type="radio" name="route" value="${k}" ${pick === k ? 'checked' : ''} ${q?.ok ? '' : 'disabled'}>`
       + `${arrives}<span class="name">${NAMES[k]}</span>${badge}${lines}<span class="trust">${esc(TRUST[k])}</span></label>`;
   }).join('');

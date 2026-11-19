@@ -181,6 +181,7 @@ h2 { margin: 0 0 8px; font-size: 15px; color: var(--muted); }
 .route .name { font-weight: 700; }
 .route .badge { margin-left: 6px; padding: 1px 7px; border-radius: 8px; background: var(--ok-bg); color: var(--ok); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .route .allin { display: block; margin-top: 4px; font-weight: 700; }
+.route .arrives .net { color: var(--muted); font-weight: 400; font-size: 13px; }
 .route .allin .pct { color: var(--muted); font-weight: 400; }
 .route .arrives { float: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 .route .line { display: block; margin-top: 2px; color: var(--muted); }
