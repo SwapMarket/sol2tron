@@ -451,7 +451,7 @@ async function quoteMesh(amount, to) {
     const nativeFee = await solanaMeshFee(route, payer, M.tronRecipient(to ?? QUOTE_TRON), amount);
     const lamports = nativeFee + SOL_TX_FEE;
     return {
-      ok: true, arrives: M.received(amount), nativeFee, needSol: lamports,
+      ok: true, arrives: M.received(amount), nativeFee, needSol: lamports, capacity: route.credits[M.TRON_EID] ?? 0n,
       cost: [{ text: `${fmtNative(lamports, 9)} SOL (LayerZero fee to deliver on Tron)`, usd: prices.SOL && (Number(lamports) / 1e9) * prices.SOL }],
     };
   }
@@ -474,7 +474,7 @@ async function quoteMesh(amount, to) {
   const total = q.nativeFee + send.total + (approve?.total ?? 0n);
   const trx = (sun) => prices.TRX && (Number(sun) / 1e6) * prices.TRX;
   return {
-    ok: true, arrives: M.received(amount), nativeFee: q.nativeFee, needTrx: total, hasAccount,
+    ok: true, arrives: M.received(amount), nativeFee: q.nativeFee, needTrx: total, hasAccount, capacity: q.limit,
     cost: [{ text: `${fmtNative(total, 6)} TRX: LayerZero fee ${fmtNative(q.nativeFee, 6)}, send ${fmtNative(send.total, 6)}${approve ? `, approval ${fmtNative(approve.total, 6)}` : ''}`, usd: trx(total) }],
     breakdown: { nativeFee: q.nativeFee, send, approve },
   };
@@ -565,7 +565,8 @@ function render() {
     const lines = !amount ? '<span class="line">Enter an amount to see the quote.</span>'
       : !q || q.loading ? '<span class="line">Quoting…</span>'
       : !q.ok ? `<span class="why">${esc(q.why || 'Not available.')}</span>`
-      : `${allIn(q, amount)}<span class="line">${fmt(q.arrives)} USDT arrives, and you pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')} on top</span>`;
+      : `${allIn(q, amount)}<span class="line">${fmt(q.arrives)} USDT arrives, and you pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')} on top</span>`
+        + (q.capacity != null ? `<span class="line">Liquidity: up to ${Math.floor(Number(q.capacity) / 1e6).toLocaleString('en')} USDT right now</span>` : '');
     const badge = q?.ok && quotes.mesh?.ok && quotes.oneclick?.ok && best() === k ? '<span class="badge">leaves you more</span>' : '';
     // The headline is what is left after every cost (amount − all-in cost), so the routes compare on one number;
     // without a SOL or TRX price, only the USDT that arrives.
