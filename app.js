@@ -193,6 +193,7 @@ function setSol(w) {
   $('solAccount').textContent = sol ? `Solana${sol.name ? ` (${sol.name})` : ''}: ${short(sol.owner.toBase58())}` : 'Solana: not connected';
   $('connectSol').textContent = sol ? 'Disconnect' : 'Connect Solana';
   $('solBal').hidden = !sol;
+  showQrRow();
   refreshBalances();
   fillRecipient();
 }
@@ -242,9 +243,13 @@ function setTron(w) {
   $('tronAccount').textContent = tronW ? `Tron (${tronW.name}): ${short(tronW.address)}` : 'Tron: not connected';
   $('connectTron').textContent = tronW ? 'Disconnect' : 'Connect Tron';
   $('tronBal').hidden = !tronW;
+  showQrRow();
   refreshBalances();
   fillRecipient();
 }
+
+// WalletConnect is offered until both chains are connected; a session already open covers whatever its wallet shared.
+function showQrRow() { $('qrRow').hidden = Boolean((sol && tronW) || sol?.wc || tronW?.wc); }
 
 function showNoWallet() {
   $('noWallet').innerHTML = 'No wallet found in this browser. Use <b>WalletConnect</b> to connect a phone wallet by QR code (Trust Wallet holds both Solana and Tron), '
@@ -508,6 +513,15 @@ const NAMES = { mesh: 'Legacy Mesh', oneclick: 'NEAR Intents' };
 
 // What the user ends up with, in USD: what arrives, less what they pay on the side (valued with 1Click's prices).
 const net = (q) => (q?.ok ? Number(q.arrives) / 1e6 - q.cost.reduce((s, c) => s + (c.usd ?? 0), 0) : -Infinity);
+// The all-in cost: the USDT that doesn't arrive, plus what is paid on the side in SOL or TRX, in USD (USDT counted at $1).
+// (null while the SOL or TRX price is unknown.)
+const allInCost = (q, amount) => (q.cost.some((c) => c.usd == null) ? null
+  : Number(amount - q.arrives) / 1e6 + q.cost.reduce((s, c) => s + c.usd, 0));
+function allIn(q, amount) {
+  const cost = allInCost(q, amount);
+  if (cost == null) return '';
+  return `<span class="allin">All-in cost $${cost.toFixed(2)} <span class="pct">(${((cost / (Number(amount) / 1e6)) * 100).toFixed(2)}%)</span></span>`;
+}
 const best = () => (net(quotes.mesh) >= net(quotes.oneclick) ? 'mesh' : 'oneclick');
 const selected = () => {
   const r = chosen ?? best();
@@ -533,6 +547,10 @@ async function doQuote() {
     let q;
     try { q = await f(amount, to); } catch (e) { console.warn(k, e); q = { ok: false, why: errMsg(e) }; }
     if (seq !== quoteSeq) return;
+    const cost = q.ok ? allInCost(q, amount) : null;
+    if (cost != null && cost > Number(amount) / 1e6) {
+      q = { ok: false, why: `Not worth it: the all-in cost of $${cost.toFixed(2)} is more than the ${fmt(amount)} USDT you would send.` };
+    }
     quotes[k] = { ...q, amount, dir: dir(), to, at: Date.now() };
     render();
   };
@@ -547,7 +565,7 @@ function render() {
     const lines = !amount ? '<span class="line">Enter an amount to see the quote.</span>'
       : !q || q.loading ? '<span class="line">Quoting…</span>'
       : !q.ok ? `<span class="why">${esc(q.why || 'Not available.')}</span>`
-      : `<span class="line">You also pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')}</span>`;
+      : `${allIn(q, amount)}<span class="line">You also pay ${q.cost.map((c) => `${esc(c.text)} ${usd(c.usd)}`).join('; ')}</span>`;
     const badge = q?.ok && quotes.mesh?.ok && quotes.oneclick?.ok && best() === k ? '<span class="badge">leaves you more</span>' : '';
     const arrives = q?.ok ? `<span class="arrives">${fmt(q.arrives)} USDT</span>` : '';
     return `<label class="route"><input type="radio" name="route" value="${k}" ${pick === k ? 'checked' : ''} ${q?.ok ? '' : 'disabled'}>`
