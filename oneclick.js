@@ -41,7 +41,7 @@ export function request({ from, amount, recipient, refundTo, dry, now = Date.now
     dry, swapType: 'EXACT_INPUT', slippageTolerance: SLIPPAGE_BPS,
     originAsset: ASSET[from], depositType: 'ORIGIN_CHAIN', destinationAsset: ASSET[to], amount: String(amount),
     refundTo, refundType: 'ORIGIN_CHAIN', recipient, recipientType: 'DESTINATION_CHAIN',
-    deadline: new Date(now + 60 * 60_000).toISOString(), referral: 'sol2tron',
+    deadline: new Date(now + 60 * 60_000).toISOString(), referral: 'swapmarket',
   };
 }
 
